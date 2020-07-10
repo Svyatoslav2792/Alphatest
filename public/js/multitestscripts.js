@@ -171,6 +171,32 @@ function deleteAuthor(id) {
         }
     });
 }
+function encrypt() {
+    crypt('#cryptoTextarea','/encrypt');
+}
+function decrypt() {
+    crypt('#cryptoTextarea','/decrypt');
+}
+
+function crypt(textArea, route) {
+    $.ajax({
+        url: route,
+        data: $(textArea).serialize(),
+        type: "POST",
+        cache: false,
+        success: function (response) {
+            $("#errors").html(response);
+            // modalBox("#myModalBox", '#message', response['message']);
+            // if (response['redirect'] === 1) {
+            //     modalBoxRedirectOnHide("#myModalBox", "/magazine");
+            // }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            modalBox("#myModalBox", '#message', 'Ошибка: ' + textStatus + '|' + errorThrown);
+        }
+    });
+}
+
 
 
 function modalBox(box_id, text_id, value) {
