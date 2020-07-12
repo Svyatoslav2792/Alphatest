@@ -11,9 +11,6 @@ class EncryptController extends Controller
     public function encrypt(Request $request)
     {
         $alphavit = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        $alphHaff=[
-
-        ]
         $url = $request->url;
         $urlParts = parse_url($url);
         parse_str($urlParts['query'], $queryArray);
