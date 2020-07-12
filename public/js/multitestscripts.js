@@ -125,7 +125,6 @@ function addAuthor() {
             if (response['redirect'] === 1) {
                 modalBoxRedirectOnHide("#myModalBox", "/author");
             }
-
         },
         error: function (jqXHR, textStatus, errorThrown) {
             modalBox("#myModalBox", '#message', 'Ошибка: ' + textStatus + '|' + errorThrown);
@@ -179,17 +178,14 @@ function decrypt() {
 }
 
 function crypt(textArea, route) {
+    console.log($(textArea).serialize())
     $.ajax({
         url: route,
         data: $(textArea).serialize(),
         type: "POST",
         cache: false,
         success: function (response) {
-            $("#cryptoTextarea").html(response);
-            // modalBox("#myModalBox", '#message', response['message']);
-            // if (response['redirect'] === 1) {
-            //     modalBoxRedirectOnHide("#myModalBox", "/magazine");
-            // }
+            $("#cryptoTextarea2").text(response);
         },
         error: function (jqXHR, textStatus, errorThrown) {
             modalBox("#myModalBox", '#message', 'Ошибка: ' + textStatus + '|' + errorThrown);

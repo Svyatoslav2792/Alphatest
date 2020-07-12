@@ -2,49 +2,77 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
 
 class DecryptController extends Controller
 {
     public function decrypt(Request $request)
     {
-        $alphavit = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        $url = utf8_decode($request->url);
+        $alphavit = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789<>'; //мой 64-х символьный алфавит
+        $alphavitHaff = [ //таблица Хаффмана
+            'e' => '011',
+            't' => '001',
+            'a' => '1111',
+            'i' => '1110',
+            'n' => '1100',
+            'r' => '1011',
+            's' => '1001',
+            'o' => '1000',
+            'h' => '0100',
+            'd' => '11011',
+            'l' => '10101',
+            'c' => '01011',
+            'f' => '01010',
+            'u' => '00011',
+            'm' => '00010',
+            'g' => '000000',
+            'p' => '110101',
+            'w' => '110100',
+            'b' => '101001',
+            'y' => '101000',
+            'v' => '000011',
+            'k' => '0000100',
+            'x' => '000010111',
+            'q' => '000010110',
+            'j' => '000010101',
+            'z' => '000010100'
+        ];
+
+        $url = $request->url;
         $urlParts = parse_url($url);
         parse_str($urlParts['query'], $queryArray);
-        $queryArray = $this->decodeUrl($queryArray, $alphavit);
         $queryArray = $this->decryptUrl($queryArray, $alphavit);
+        $queryArray = $this->decodeHaff($queryArray, $alphavit, $alphavitHaff);
         return $this->build_url($urlParts, $queryArray);
     }
 
-    public function decodeUrl($queryArray, $alphavit)
+    public function decodeHaff($queryArray, $alphavit, $alphavitHaff)
     {
         $decodedArray = [];
-        $x = 0;
         foreach ($queryArray as $key => $query) {
-            $x++;
-//            if($x==7){break;}
             $decode = '';
             for ($i = 0; $i < strlen($key); $i++) { //перебираем значение
-                $lenKey = strlen(strval(decbin(ord($key[$i]))));
-                if ($lenKey < 8) {
-                    do {            //дополняем каждую строку до 8-и символов нулями в начале, если она короче
+                $lenKey = strlen(decbin(strpos($alphavit, $key[$i])));
+                if ($lenKey < 6) {
+                    do {            //дополняем каждую строку до 6-и символов нулями в начале, если она короче
                         $decode .= '0';
                         $lenKey++;
-                    } while ($lenKey < 8);
+                    } while ($lenKey < 6);
                 }
-                $decode .= strval(decbin(ord($key[$i]))); //пишем полученный код в строку
+                $decode .= decbin(strpos($alphavit, $key[$i]));
             }
-            $lenCode = strlen($decode);
-            $lenCode = $lenCode - $lenCode % 6;
+            $j = 0;
             $decodeKey = '';
-            for ($i = 0; $i < $lenCode; $i += 6) {
-                $decodeKey .= @$alphavit[bindec(substr($decode, $i, 6))];
+            for ($i = 0; $i < strlen($decode); $i++) {
+                if (in_array(substr($decode, $j, $i - $j), $alphavitHaff, true)) {
+                    $decodeKey .= array_search(substr($decode, $j, $i - $j), $alphavitHaff, true);
+                    $j = $i;
+                }
             }
-            $decodedArray[utf8_encode($decodeKey)] = $query;
+            $decodedArray[$decodeKey] = $query;
         }
-
-        return ($decodedArray);
+        return $decodedArray;
     }
 
     public function decryptUrl($queryArray, $alphavit)
@@ -55,7 +83,7 @@ class DecryptController extends Controller
             $cryptoKeyPos = strpos($alphavit, $cryptoKey);
             $encryptedKey = '';
             for ($i = 1; $i < strlen($key); $i++) {
-                $encryptedKey .= $alphavit[(62 + strpos($alphavit, $key[$i]) - $cryptoKeyPos) % 62];
+                $encryptedKey .= $alphavit[(64 + strpos($alphavit, $key[$i]) - $cryptoKeyPos) % 64];
             }
             $encryptedArray[$encryptedKey] = $query;
         }
