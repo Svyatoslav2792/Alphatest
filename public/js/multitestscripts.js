@@ -185,7 +185,7 @@ function crypt(textArea, route) {
         type: "POST",
         cache: false,
         success: function (response) {
-            $("#errors").html(response);
+            $("#cryptoTextarea").html(response);
             // modalBox("#myModalBox", '#message', response['message']);
             // if (response['redirect'] === 1) {
             //     modalBoxRedirectOnHide("#myModalBox", "/magazine");
